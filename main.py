@@ -24,7 +24,8 @@ def train_model(program_name):
     labels = []
 
     try:
-        userlist = [user for user in os.listdir(f'face/{program_name}') if os.path.isdir(os.path.join(f'face/{program_name}', user))]
+        userlist = [user for user in os.listdir(f'face/{program_name}') if
+                    os.path.isdir(os.path.join(f'face/{program_name}', user))]
 
         if not userlist:
             print("No faces found for training.")
@@ -73,19 +74,6 @@ def identify_face(facearray, model):
         return None
 
 
-def save_attendance(program_name, subject, identified_person, current_time, current_date):
-    attendance_data = [identified_person, current_time, current_date]
-
-    Attendance_path = "Attendance"
-    os.makedirs(Attendance_path, exist_ok=True)
-    csv_file_path = os.path.join('Attendance', f"Attendance for {program_name} subject {subject} in {current_month}.csv")
-
-    with open(csv_file_path, "a", newline="\n") as f:
-        lnwrite = csv.writer(f)
-        lnwrite.writerow(attendance_data)
-
-    return csv_file_path
-
 
 def start():
     program_name = input('Enter Your Program name: ').upper()
@@ -98,6 +86,9 @@ def start():
         return
 
     subject = input('Enter your Subject for Attendance: ').capitalize()
+
+    if not os.path.isfile(get_attendance_file_path(program_name, subject)):
+        create_attendance_csv(program_name, subject)
 
     ret = True
     cap = cv2.VideoCapture(0)
@@ -114,7 +105,8 @@ def start():
                 face = cv2.resize(frame[y:y + h, x:x + w], (50, 50))
                 identified_person = identify_face(face.reshape(1, -1), model)
                 if identified_person:
-                    csv_file_path = save_attendance(program_name, subject, identified_person, current_time, current_date)
+                    csv_file_path = save_attendance(program_name, subject, identified_person, current_time,
+                                                    current_date)
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 1)
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (50, 50, 255), 2)
                     cv2.rectangle(frame, (x, y - 40), (x + w, y), (50, 50, 255), -1)
@@ -160,45 +152,93 @@ def add(new_user, program_name):
     cap.release()
     cv2.destroyAllWindows()
 
+def save_attendance(program_name, subject, identified_person, current_time, current_date):
+    csv_file_path = get_attendance_file_path(program_name, subject)
+
+    if not os.path.isfile(csv_file_path):
+        create_attendance_csv(program_name, subject)
+
+    attendance_data = [identified_person, current_date]
+
+    # Check if the student's attendance has already been recorded for the current date and subject
+    if not is_attendance_recorded(csv_file_path, identified_person, current_date):
+        with open(csv_file_path, "a", newline="\n") as f:
+            lnwrite = csv.writer(f)
+            lnwrite.writerow(attendance_data)
+
+    return csv_file_path
+
+
+def is_attendance_recorded(csv_file_path, student_id, current_date):
+    with open(csv_file_path, "r", newline="\n") as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip the header row
+        for row in reader:
+            if row[0] == student_id and row[2] == current_date:
+                return True
+    return False
+
+
+def get_attendance_file_path(program_name, subject):
+    return os.path.join('Attendance', f"Attendance for {program_name} subject {subject} in {current_month}.csv")
+
+
+def create_attendance_csv(program_name, subject):
+    csv_file_path = get_attendance_file_path(program_name, subject)
+    header = ["Name", subject, "Date"]
+    with open(csv_file_path, "w", newline="\n") as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+    return csv_file_path
 
 def get_attendance(program_name, subject):
-    csv_file_path = os.path.join('Attendance', f"Attendance for {program_name} subject {subject} in {current_month}.csv")
+    csv_file_path = get_attendance_file_path(program_name, subject)
 
     try:
         with open(csv_file_path, "r") as f:
             reader = csv.reader(f)
-            if program_name and subject in csv_file_path:
-                return csv_file_path
-        return attendance_file_path
+            # Check if the first row contains headers
+            header = next(reader)
+            if "Name" in header and "Time" in header and "Date" in header:
+                # Check if there is at least one data row
+                for row in reader:
+                    if row:
+                        return csv_file_path
+        return None
     except FileNotFoundError:
         return None
 
 
 if __name__ == "__main__":
     # Choose the operation to perform: 'add' to add a new user, 'start' to start attendance
-    operation = input("Enter operation ('add' or 'start'): ")
+    while True:
+        operation = input("Enter operation ('add', 'start', 'get' or 'exit'): ")
 
-    if operation == 'add':
-        program_name = input('Enter your Program Name: ').upper()
-        new_user_name = input('Enter new username: ').capitalize()
-        new_user_id = input('Enter new user ID: ')
+        if operation == 'add':
+            program_name = input('Enter your Program Name: ').upper()
+            new_user_name = input('Enter new username: ').capitalize()
+            new_user_id = input('Enter new user ID: ')
 
-        add(f'{new_user_name}_{new_user_id}_{program_name}', program_name )
+            add(f'{new_user_name}_{new_user_id}_{program_name}', program_name)
 
-    elif operation == 'start':
-        csv_file_path = start()
-        print(f"Attendance data saved in: {csv_file_path}")
+        elif operation == 'start':
+            print(f"Atleast Two student in {program_name} then start:")
+            csv_file_path = start()
+            print(f"Attendance data saved in: {csv_file_path}")
 
-    elif operation == 'get':
-        program_name = input('Enter your Program Name: ').upper()
-        subject = input('Enter subject for attendance: ').capitalize()
+        elif operation == 'get':
+            program_name = input('Enter your Program Name: ').upper()
+            subject = input('Enter subject for attendance: ').capitalize()
 
-        attendance_file_path = get_attendance(program_name, subject)
-        if attendance_file_path:
-            # Read the file or perform any other operations with the file path
-            print(f"Attendance file found at: {attendance_file_path}")
+            attendance_file_path = get_attendance(program_name, subject)
+            if attendance_file_path:
+                # Read the file or perform any other operations with the file path
+                print(f"Attendance file found at: {attendance_file_path}")
+            else:
+                print("Attendance file not found.")
+
+        elif operation == 'exit':
+            break
+
         else:
-            print("Attendance file not found.")
-
-    else:
-        print("Invalid operation. Please enter 'add' or 'start'.")
+            print("Invalid operation. Please enter 'add', 'start', 'get' or 'exit'.")
