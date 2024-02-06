@@ -43,12 +43,12 @@ Attendance Management System is designed to automate the process of taking atten
 Contributions are welcome! If you encounter any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request.
 
 ## Libraries Used
-- OpenCV: For image processing and face detection.
-- NumPy: For numerical computations.
-- scikit-learn: For implementing machine learning algorithms.
-- joblib: For saving and loading machine learning models.
-- csv: For reading and writing CSV files.
-- datetime: For handling date and time operations.
+- `OpenCV:` For image processing and face detection.
+- `NumPy:` For numerical computations.
+- `scikit-learn:` For implementing machine learning algorithms.
+- `joblib:` For saving and loading machine learning models.
+- `csv:` For reading and writing CSV files.
+- `datetime:` For handling date and time operations.
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
