@@ -23,7 +23,7 @@ Attendance Management System is designed to automate the process of taking atten
 ## Installation
 1. Clone the repository:
     ```
-    git clone https://github.com/your-username/attendance-management-system.git
+    git clone https://github.com/codewithdark-git/attendance-management-system.git
     ```
 2. Install the required dependencies:
     ```
