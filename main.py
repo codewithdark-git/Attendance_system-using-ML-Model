@@ -11,13 +11,11 @@ nimgs = 5
 current_date = datetime.now().strftime("%d-%b-%Y")
 current_time = datetime.now().strftime("%H:%M:%S")
 current_month = date.today().strftime("%B")
-
 face_detector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 
 def totalreg():
     return len(os.listdir('faces'))
-
 
 def train_model(program_name):
     faces = []
@@ -56,8 +54,6 @@ def train_model(program_name):
     except Exception as e:
         print(f"Error during training: {e}")
         return None
-
-
 def extract_faces(img):
     try:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -65,15 +61,12 @@ def extract_faces(img):
         return face_points
     except:
         return []
-
-
+    
 def identify_face(facearray, model):
     if model is not None:
         return model.predict(facearray.reshape(1, -1))[0]
     else:
         return None
-
-
 
 def start():
     program_name = input('Enter Your Program name: ').upper()
